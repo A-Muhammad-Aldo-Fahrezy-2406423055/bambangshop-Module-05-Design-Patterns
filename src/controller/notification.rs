@@ -1,15 +1,10 @@
-use rocket::{get, post, serde::json::Json};
-use crate::service::notification::NotificationService;
+use rocket::serde::json::Json;
+use bambangshop::{Result, compose_error_response};
 use crate::model::subscriber::Subscriber;
+use crate::service::notification::NotificationService;
 
-#[post("/subscribe/<product_type>", format = "json", data = "<subscriber>")]
-pub fn subscribe(product_type: &str, subscriber: Json<Subscriber>) -> Json<Subscriber> {
-    let subscriber = NotificationService::subscribe(product_type, subscriber.into_inner());
-    Json(subscriber)
-}
-
-#[post("/unsubscribe/<product_type>?<url>")]
-pub fn unsubscribe(product_type: &str, url: &str) -> Json<Subscriber> {
-    let subscriber = NotificationService::unsubscribe(product_type, url);
-    Json(subscriber.unwrap())
+#[post("/subscribe/<product_type>", data = "<subscriber>")]
+pub fn subscribe(product_type: &str, subscriber: Json<Subscriber>) -> Result<Subscriber> {
+    let result = NotificationService::subscribe(product_type, subscriber.into_inner());
+    Ok(Json(result))
 }
