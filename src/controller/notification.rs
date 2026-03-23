@@ -8,3 +8,15 @@ pub fn subscribe(product_type: &str, subscriber: Json<Subscriber>) -> Result<Sub
     let result = NotificationService::subscribe(product_type, subscriber.into_inner());
     Ok(Json(result))
 }
+
+#[post("/unsubscribe/<product_type>?<url>")]
+pub fn unsubscribe(product_type: &str, url: &str) -> Result<Subscriber> {
+    let result = NotificationService::unsubscribe(product_type, url);
+    match result {
+        Some(subscriber) => Ok(Json(subscriber)),
+        None => Err(compose_error_response(
+            rocket::http::Status::NotFound,
+            String::from("Subscriber not found."),
+        )),
+    }
+}
