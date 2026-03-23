@@ -77,7 +77,22 @@ This is the place for you to write reflections:
 ### Mandatory (Publisher) Reflections
 
 #### Reflection Publisher-1
+In Java, interfaces are necessary to ensure the publisher only knows about the update method without knowing the concrete class, enforcing loose coupling. In Rust, traits serve the same purpose. However, in this specific BambangShop case where we only have one type of subscriber, using a single Subscriber model struct is perfectly sufficient and avoids over-engineering. If we had multiple different ways to notify subscribers, a trait would be essential.
+
+Since ID and URL are unique, using a Vec means checking for duplicates or finding a specific subscriber to remove would take linear time. Using a DashMap allows for constant time lookups, insertions, and deletions using the URL as the key. This is much more efficient and necessary for handling many subscribers concurrently.
+
+The Singleton pattern ensures only one instance of an object exists. However, in a multi-threaded web server like Rocket, multiple request handler threads will try to access and mutate this single instance simultaneously. A normal Singleton in Rust still requires synchronization primitives like Mutex or RwLock to be thread-safe. DashMap already implements these concurrent access safeguards internally, so we still need DashMap or a thread-safe wrapper even if we use a Singleton pattern.
 
 #### Reflection Publisher-2
+In MVC, if the Model handles data structuring, business logic, and database access, it violates the Single Responsibility Principle and becomes a "God Object." Separating them ensures the Model only defines the data structure, the Repository handles database operations, and the Service handles the core business logic. This makes the code modular, easier to test, and easier to maintain.
+
+If we only use Models, the code complexity within Program, Subscriber, and Notification would explode as they try to handle HTTP request parsing, payload formatting, database queries, and business rules all within a single struct. Modifying the database logic would risk breaking the business logic, and testing them in isolation would become impossible.
+
+Postman has been extremely useful for testing our API endpoints without needing a frontend client. I am interested in using its automated testing feature and collections runner to run integration tests across multiple endpoints sequentially, which will be highly beneficial for ensuring reliability in the Group Project.
 
 #### Reflection Publisher-3
+In this tutorial, we use the Push model. The publisher sends the notification payload directly to the subscribers through the HTTP POST request whenever an event occurs.
+
+If we used the Pull model, the advantage is that subscribers only fetch data when they need it, reducing payload size on the initial notification. The disadvantage is that it requires two network requests, which causes higher latency and potential bottlenecks if many subscribers pull data at once.
+
+If we didn't use multi-threading, the publisher would have to send HTTP requests to each subscriber sequentially in a loop. If there are hundreds of subscribers or if some subscribers have slow network responses, the original request would be blocked and take a very long time to return a response to the client. Multi-threading allows the main response to return instantly while notifications are sent in the background.
