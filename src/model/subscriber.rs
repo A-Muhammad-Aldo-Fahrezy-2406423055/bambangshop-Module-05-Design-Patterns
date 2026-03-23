@@ -11,3 +11,15 @@ pub struct Subscriber {
     pub url: String,
     pub name: String,
 }
+
+impl Subscriber {
+    pub fn update(&self, payload: Notification) {
+        let url = self.url.clone();
+        tokio::spawn(async move {
+            match REQWEST_CLIENT.post(&url).json(&payload).send().await {
+                Ok(_) => println!("Successfully sent notification to {}", url),
+                Err(e) => println!("Failed to send notification to {}: {}", url, e)
+            }
+        });
+    }
+}
